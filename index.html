@@ -1,29 +1,25 @@
-<!-- @format -->
-
 <!DOCTYPE html>
+
 <html>
   <head>
     <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,user-scalable = no" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <link rel="apple-touch-icon" href="icon.png" />
   </head>
+
   <body>
-    <video width="320" height="240" controls autoplay>
+    <video id="video" width="500" height="500" autoplay>
       <source src="speed.mp4" />
     </video>
 
-    <div id="x">vv</div>
+    <div id="x">vg</div>
+    <button onclick="ShowFloatingWindow(this)">SHOW</button>
 
     <script>
       var Latitude = null;
       var Longitude = null;
-      var UpdateTime = null;
+      var Speed = null;
+      var GpsAge = null;
 
-      var PlaceName = null;
-      var MaxSpeed = null;
-
-      function NavigatorPermission() {
+      function GetGpsPermission() {
         if (navigator.permissions && navigator.permissions.query) {
           navigator.permissions.query({ name: "geolocation" }).then(function (result) {
             // Will return ['granted', 'prompt', 'denied']
@@ -38,7 +34,7 @@
           return true;
         }
       }
-      function NavigatorLooper() {
+      function GetGpsLocation() {
         const options = {
           enableHighAccuracy: true,
           timeout: 5000,
@@ -48,71 +44,128 @@
           function (position) {
             Latitude = position.coords.latitude;
             Longitude = position.coords.longitude;
-            UpdateTime = Date.now();
-            NavigatorLooper();
+            Speed = position.coords.speed; //*3.6 TO KM
+            GpsAge = Date.now();
           },
-          function (error) {
-            //alert(error.code);
-            NavigatorLooper();
-          },
+          function (error) {},
           options
         );
       }
-
-      document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-          if (!NavigatorPermission()) {
-            alert("Gps permission not granted!");
-          } else {
-            NavigatorLooper();
-          }
-
-          setInterval(function () {
-            GetMaxSpeed();
-            var nl = "\n";
-            document.getElementById("x").innerText = "Place:" + PlaceName + nl + " Latitude:" + Latitude + " Longitude:" + Longitude + nl + " Masspeed:" + MaxSpeed;
-          }, 5000);
-
-          // setInterval(function () {
-          //     document.getElementById("x").innerText = "Latitude:"+Latitude+" Longitude:"+Longitude;
-          // }, 100);
-
-        },
-        false
-      );
-
-      var CurrentNumber = 1;
-      document.getElementsByTagName("video")[0].addEventListener("loadeddata", (event) => {
-        document.getElementsByTagName("video")[0].play();
+      function DebugTestGps() {
+        var i = 0;
         setInterval(function () {
-          var video = document.getElementsByTagName("video")[0];
-          if (UpdateTime != null) {
-            var seconds = (Date.now() - UpdateTime) / 1000;
-            seconds += 1;
-            video.currentTime = seconds;
-          } else {
-            video.currentTime = 5;
+          i++;
+
+          if (i == 1) {
+            Latitude = 50.33006554208371;
+            Longitude = 19.192047731242557;
           }
+
+          GpsAge = Date.now();
+          Speed = 100;
+          Latitude += 0.000000001;
+          Longitude += 0.000000001;
+        }, 1000);
+      }
+
+      window.addEventListener("DOMContentLoaded", (event) => {
+        if (GetGpsPermission()) {
+          setInterval(function () {
+            GetGpsLocation();
+          }, 1000);
+        } else {
+          alert("No gps permission DEBUG MODE ENABLE");
+          DebugTestGps();
+          setInterval(function () {
+            document.getElementById("x").innerText = "Lat: " + Latitude + " Lon: " + Longitude + " Speed: " + Speed + " Age:" + (Date.now() - GpsAge) / 1000;
+          }, 100);
+        }
+      });
+    </script>
+
+    <script>
+      var Player = document.getElementsByTagName("video")[0];
+
+      var DSP_Number = null;
+      var DSP_OverLimit = false;
+      var DSP_NoGps = false;
+      var DSP_NoInternet = false;
+      var DSP_Loading = false;
+      var DSP_UnknownLimit = false;
+      var DSP_FatalError = false;
+      var DSP_NoLimit = false;
+
+      Player.addEventListener("loadeddata", (event) => {
+        setInterval(function () {
+          if (DSP_FatalError) {
+            Player.currentTime = 44;
+            return;
+          }
+          if (DSP_NoGps) {
+            Player.currentTime = 41;
+            return;
+          }
+          if (DSP_NoInternet) {
+            Player.currentTime = 42;
+            return;
+          }
+          if (DSP_UnknownLimit) {
+            Player.currentTime = 43;
+            return;
+          }
+          if (DSP_NoLimit) {
+            Player.currentTime = 45;
+            return;
+          }
+          if (DSP_Number == null || DSP_Loading) {
+            Player.currentTime = 40;
+            return;
+          }
+
+          var ValidNumber = DSP_Number;
+
+          if (ValidNumber > 200) {
+            ValidNumber = 200;
+          }
+          if (ValidNumber < 10) {
+            ValidNumber = 10;
+          }
+
+          ValidNumber = Math.floor(ValidNumber / 10) * 10;
+          ValidNumber = ValidNumber / 10;
+
+          if (DSP_OverLimit) {
+            ValidNumber = ValidNumber + 20;
+          }
+
+          Player.currentTime = ValidNumber - 1;
         }, 100);
       });
 
-      function GetMaxSpeed() {
-        var req = new XMLHttpRequest();
-        req.open("GET", "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + Latitude + "&lon=" + Longitude + "&zoom=17&addressdetails=1&extratags=1", false);
-        req.send(null);
-        var json = JSON.parse(req.responseText);
+      Player.addEventListener("pause", (event) => {
+        Player.play();
+      });
 
-        PlaceName = json["display_name"];
-        MaxSpeed = json["extratags"].maxspeed;
+      Player.addEventListener("leavepictureinpicture", function (event) {
+        window.location.reload(true);
+      });
+
+      function ShowFloatingWindow(Element) {
+        Player.webkitSetPresentationMode(video.webkitPresentationMode === "picture-in-picture" ? "inline" : "picture-in-picture");
+        Player.play();
+        Element.remove();
       }
 
-      function DebugGps() {
+      function DebugTestDSP() {
+        DSP_Number = 0;
         setInterval(function () {
-          Latitude = 50.33006554208371;
-          Longitude = 19.192047731242557;
-          UpdateTime = Date.now();
-        }, 1000);
+          if (DSP_Number > 200) {
+            DSP_Number = 0;
+            DSP_OverLimit = !DSP_OverLimit;
+          }
+
+          DSP_Number += 10;
+        }, 100);
       }
     </script>
   </body>
