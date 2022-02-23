@@ -44,6 +44,7 @@
             Latitude = position.coords.latitude;
             Longitude = position.coords.longitude;
             UpdateTime = Date.now();
+            alert(Latitude);
             NavigatorLooper();
         }, function (error) {
             //alert(error.code);
@@ -59,11 +60,10 @@
         }
 
         setInterval(function () {
-            var MaxSpeed = GetMaxSpeed();
-            alert(MaxSpeed);
+            //var MaxSpeed = GetMaxSpeed();
+            //alert(MaxSpeed);
         }, 5000);
 
-        DebugGps();
     }, false);
 
 
