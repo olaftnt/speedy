@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,user-scalable = no">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+    <link rel="apple-touch-icon" href="icon.png">
+</head>
+<body>
+<video width="320" height="240" controls autoplay>
+    <source src="speed.mp4">
+</video>
+
+<div id="x">x</div>
+
+<script>
+
+    var Latitude = null;
+    var Longitude = null;
+    var UpdateTime = null;
+
+    function NavigatorPermission() {
+        if (navigator.permissions && navigator.permissions.query) {
+            navigator.permissions.query({name: 'geolocation'}).then(function (result) {
+                // Will return ['granted', 'prompt', 'denied']
+                const permission = result.state;
+                if (permission === 'granted' || permission === 'prompt') {
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        } else if (navigator.geolocation) {
+            return true
+        }
+    }
+    function NavigatorLooper() {
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
+        navigator.geolocation.getCurrentPosition(function (position) {
+            Latitude = position.coords.latitude;
+            Longitude = position.coords.longitude;
+            UpdateTime = Date.now();
+            NavigatorLooper();
+        }, function (error) {
+            //alert(error.code);
+            // NavigatorLooper();
+        }, options)
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!NavigatorPermission()) {
+            alert("Gps permission not granted!")
+        } else {
+            NavigatorLooper();
+        }
+
+        setInterval(function () {
+            var MaxSpeed = GetMaxSpeed();
+            alert(MaxSpeed);
+        }, 5000);
+
+        DebugGps();
+    }, false);
+
+
+    var CurrentNumber = 1;
+    document.getElementsByTagName('video')[0].addEventListener('loadeddata', (event) => {
+        setInterval(function () {
+            var video = document.getElementsByTagName('video')[0];
+            video.currentTime = CurrentNumber - 1;
+        }, 100);
+    });
+
+    function GetMaxSpeed() {
+        var req = new XMLHttpRequest();
+        req.open('GET', 'https://nominatim.openstreetmap.org/reverse?format=json&lat=52.143458&lon=19.482136&zoom=17&addressdetails=1&extratags=1', false);
+        req.send(null);
+        var json = JSON.parse(req.responseText);
+        var MaxSpeed = json["extratags"].maxspeed;
+        return MaxSpeed;
+    }
+
+    function DebugGps() {
+        setInterval(function () {
+            Latitude = "52.143458";
+            Longitude = "19.482136";
+            UpdateTime = Date.now();
+        }, 1000);
+    }
+</script>
+</body>
+</html>
