@@ -68,6 +68,10 @@
         }, 1000);
       }
 
+      setInterval(function () {
+        document.getElementById("x").innerText = "Lat: " + Latitude + " Lon: " + Longitude + " Speed: " + Speed + " Age:" + (Date.now() - GpsAge) / 1000;
+      }, 100);
+
       window.addEventListener("DOMContentLoaded", (event) => {
         if (GetGpsPermission()) {
           setInterval(function () {
@@ -76,9 +80,6 @@
         } else {
           alert("No gps permission DEBUG MODE ENABLE");
           DebugTestGps();
-          setInterval(function () {
-            document.getElementById("x").innerText = "Lat: " + Latitude + " Lon: " + Longitude + " Speed: " + Speed + " Age:" + (Date.now() - GpsAge) / 1000;
-          }, 100);
         }
       });
     </script>
