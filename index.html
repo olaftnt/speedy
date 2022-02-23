@@ -63,6 +63,11 @@
             //alert(MaxSpeed);
         }, 5000);
 
+        setInterval(function () {
+            //UpdateTime = Date.now();
+        }, 1000);
+
+
     }, false);
 
 
@@ -70,9 +75,13 @@
     document.getElementsByTagName('video')[0].addEventListener('loadeddata', (event) => {
         setInterval(function () {
             var video = document.getElementsByTagName('video')[0];
-            var seconds = (new Date().getTime() - UpdateTime.getTime()) / 1000;
+            if(UpdateTime!=null){
+            var seconds = (Date.now() - UpdateTime) / 1000;
             seconds += 1;
             video.currentTime = seconds;
+            }else{
+                video.currentTime = 0;
+            }
         }, 100);
     });
 
