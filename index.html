@@ -11,7 +11,7 @@
     <source src="speed.mp4">
 </video>
 
-<div id="x">qq</div>
+<div id="x">qqr</div>
 
 <script>
 
@@ -59,13 +59,13 @@
         }
 
         setInterval(function () {
-            //var MaxSpeed = GetMaxSpeed();
-            //alert(MaxSpeed);
+            var MaxSpeed = GetMaxSpeed();
+            document.getElementById("x").innerText = "Latitude:"+Latitude+" Longitude:"+Longitude+" Masspeed:"+MaxSpeed;
         }, 5000);
 
-        setInterval(function () {
-            document.getElementById("x").innerText = "Latitude:"+Latitude+" Longitude:"+Longitude;
-        }, 100);
+        // setInterval(function () {
+        //     document.getElementById("x").innerText = "Latitude:"+Latitude+" Longitude:"+Longitude;
+        // }, 100);
 
 
     }, false);
@@ -88,7 +88,7 @@
 
     function GetMaxSpeed() {
         var req = new XMLHttpRequest();
-        req.open('GET', 'https://nominatim.openstreetmap.org/reverse?format=json&lat=52.143458&lon=19.482136&zoom=17&addressdetails=1&extratags=1', false);
+        req.open('GET', 'https://nominatim.openstreetmap.org/reverse?format=json&lat='+Latitude+'&lon='+Longitude+'&zoom=17&addressdetails=1&extratags=1', false);
         req.send(null);
         var json = JSON.parse(req.responseText);
         var MaxSpeed = json["extratags"].maxspeed;
