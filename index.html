@@ -44,7 +44,7 @@
           function (position) {
             Latitude = position.coords.latitude;
             Longitude = position.coords.longitude;
-            Speed = position.coords.speed * 3.6;
+            Speed = position.coords.speed;
             GpsAge = Date.now();
           },
           function (error) {},
