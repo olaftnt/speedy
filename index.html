@@ -1,99 +1,120 @@
+<!-- @format -->
+
 <!DOCTYPE html>
 <html>
-<head>
-    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,user-scalable = no">
-    <meta name="apple-mobile-web-app-capable" content="yes"/>
-    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
-    <link rel="apple-touch-icon" href="icon.png">
-</head>
-<body>
-<video width="320" height="240" controls autoplay>
-    <source src="speed.mp4">
-</video>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,user-scalable = no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link rel="apple-touch-icon" href="icon.png" />
+  </head>
+  <body>
+    <video width="320" height="240" controls autoplay>
+      <source src="speed.mp4" />
+    </video>
 
-<div id="x">qqr</div>
+    <div id="x">vv</div>
 
-<script>
+    <script>
+      var Latitude = null;
+      var Longitude = null;
+      var UpdateTime = null;
 
-    var Latitude = null;
-    var Longitude = null;
-    var UpdateTime = null;
+      var PlaceName = null;
+      var MaxSpeed = null;
 
-    function NavigatorPermission() {
+      function NavigatorPermission() {
         if (navigator.permissions && navigator.permissions.query) {
-            navigator.permissions.query({name: 'geolocation'}).then(function (result) {
-                // Will return ['granted', 'prompt', 'denied']
-                const permission = result.state;
-                if (permission === 'granted' || permission === 'prompt') {
-                    return true;
-                } else {
-                    return false;
-                }
-            });
+          navigator.permissions.query({ name: "geolocation" }).then(function (result) {
+            // Will return ['granted', 'prompt', 'denied']
+            const permission = result.state;
+            if (permission === "granted" || permission === "prompt") {
+              return true;
+            } else {
+              return false;
+            }
+          });
         } else if (navigator.geolocation) {
-            return true
+          return true;
         }
-    }
-    function NavigatorLooper() {
+      }
+      function NavigatorLooper() {
         const options = {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
         };
-        navigator.geolocation.getCurrentPosition(function (position) {
+        navigator.geolocation.getCurrentPosition(
+          function (position) {
             Latitude = position.coords.latitude;
             Longitude = position.coords.longitude;
             UpdateTime = Date.now();
             NavigatorLooper();
-        }, function (error) {
+          },
+          function (error) {
             //alert(error.code);
-         NavigatorLooper();
-        }, options)
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        if (!NavigatorPermission()) {
-            alert("Gps permission not granted!")
-        } else {
             NavigatorLooper();
-        }
+          },
+          options
+        );
+      }
 
+      document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+          if (!NavigatorPermission()) {
+            alert("Gps permission not granted!");
+          } else {
+            NavigatorLooper();
+          }
+
+          setInterval(function () {
+            GetMaxSpeed();
+            var nl = "\n";
+            document.getElementById("x").innerText = "Place:" + PlaceName + nl + " Latitude:" + Latitude + " Longitude:" + Longitude + nl + " Masspeed:" + MaxSpeed;
+          }, 5000);
+
+          // setInterval(function () {
+          //     document.getElementById("x").innerText = "Latitude:"+Latitude+" Longitude:"+Longitude;
+          // }, 100);
+
+          DebugGps(); //DEBUG
+        },
+        false
+      );
+
+      var CurrentNumber = 1;
+      document.getElementsByTagName("video")[0].addEventListener("loadeddata", (event) => {
+        document.getElementsByTagName("video")[0].play();
         setInterval(function () {
-            var MaxSpeed = GetMaxSpeed();
-            document.getElementById("x").innerText = "Latitude:"+Latitude+" Longitude:"+Longitude+" Masspeed:"+MaxSpeed;
-        }, 5000);
-
-        // setInterval(function () {
-        //     document.getElementById("x").innerText = "Latitude:"+Latitude+" Longitude:"+Longitude;
-        // }, 100);
-
-
-    }, false);
-
-
-    var CurrentNumber = 1;
-    document.getElementsByTagName('video')[0].addEventListener('loadeddata', (event) => {
-        document.getElementsByTagName('video')[0].play();
-        setInterval(function () {
-            var video = document.getElementsByTagName('video')[0];
-            if(UpdateTime!=null){
+          var video = document.getElementsByTagName("video")[0];
+          if (UpdateTime != null) {
             var seconds = (Date.now() - UpdateTime) / 1000;
             seconds += 1;
             video.currentTime = seconds;
-            }else{
-                video.currentTime = 5;
-            }
+          } else {
+            video.currentTime = 5;
+          }
         }, 100);
-    });
+      });
 
-    function GetMaxSpeed() {
+      function GetMaxSpeed() {
         var req = new XMLHttpRequest();
-        req.open('GET', 'https://nominatim.openstreetmap.org/reverse?format=json&lat='+Latitude+'&lon='+Longitude+'&zoom=17&addressdetails=1&extratags=1', false);
+        req.open("GET", "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + Latitude + "&lon=" + Longitude + "&zoom=17&addressdetails=1&extratags=1", false);
         req.send(null);
         var json = JSON.parse(req.responseText);
-        var MaxSpeed = json["extratags"].maxspeed;
-        return MaxSpeed;
-    }
-</script>
-</body>
+
+        PlaceName = json["display_name"];
+        MaxSpeed = json["extratags"].maxspeed;
+      }
+
+      function DebugGps() {
+        setInterval(function () {
+          Latitude = 50.33006554208371;
+          Longitude = 19.192047731242557;
+          UpdateTime = Date.now();
+        }, 1000);
+      }
+    </script>
+  </body>
 </html>
