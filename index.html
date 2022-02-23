@@ -11,7 +11,7 @@
     <source src="speed.mp4">
 </video>
 
-<div id="x">xy</div>
+<div id="x">xyz</div>
 
 <script>
 
@@ -70,7 +70,9 @@
     document.getElementsByTagName('video')[0].addEventListener('loadeddata', (event) => {
         setInterval(function () {
             var video = document.getElementsByTagName('video')[0];
-            video.currentTime = CurrentNumber - 1;
+            var seconds = (new Date().getTime() - UpdateTime.getTime()) / 1000;
+            seconds += 1;
+            video.currentTime = seconds;
         }, 100);
     });
 
