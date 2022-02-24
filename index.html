@@ -6,11 +6,11 @@
   </head>
 
   <body>
-    <video id="video" width="500" height="500" autoplay>
+    <video id="video" width="200" height="200" autoplay>
       <source src="speed.mp4" />
     </video>
 
-    <div id="x">vg</div>
+    <div id="x" style="color: black; font-size: 50px">vg</div>
     <button onclick="ShowFloatingWindow(this)">SHOW</button>
 
     <script>
@@ -104,7 +104,8 @@
       }
 
       setInterval(function () {
-        document.getElementById("x").innerText = "Lat: " + Latitude + " Lon: " + Longitude + " Speed: " + Speed + " Age:" + (Date.now() - GpsAge) / 1000;
+        document.getElementById("x").innerText = "Lat: " + Latitude + "\n Lon: " + Longitude + "\n Speed: " + Speed + "\n Age:" + (Date.now() - GpsAge) / 1000;
+        DSP_Number = Speed;
       }, 100);
 
       window.addEventListener("DOMContentLoaded", (event) => {
