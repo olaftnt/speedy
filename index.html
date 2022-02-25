@@ -14,6 +14,65 @@
     <button onclick="ShowFloatingWindow(this)">SHOW</button>
 
     <script>
+      var ix = 0;
+
+      function MainController() {
+        if (Latitude == null || Longitude == null || Speed == null || GpsAge == null || (Date.now() - GpsAge) / 1000 > 5) {
+          DSP_NoGps = true;
+          return;
+        } else {
+          DSP_NoGps = false;
+        }
+
+        var NetworkRespone = null;
+        try {
+          var req = new XMLHttpRequest();
+          req.open("GET", "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + Latitude + "&lon=" + Longitude + "&zoom=17&addressdetails=1&extratags=1", false);
+          req.send(null);
+          NetworkRespone = req.responseText;
+        } catch {}
+        if (NetworkRespone == null) {
+          DSP_NoInternet = true;
+          return;
+        } else {
+          DSP_NoInternet = false;
+        }
+
+        var Json = JSON.parse(NetworkRespone);
+        var MaxSpeed = Json["extratags"].maxspeed;
+
+        // if (ix == 1) {
+        //   MaxSpeed = null;
+        // }
+        // document.getElementById("x").innerText = ix;
+        // ix++;
+
+        if (MaxSpeed == null) {
+          DSP_UnknownLimit = true;
+          return;
+        } else {
+          DSP_UnknownLimit = false;
+        }
+
+        if (MaxSpeed == "none") {
+          DSP_NoLimit = true;
+          true;
+        } else {
+          DSP_NoLimit = false;
+        }
+
+        DSP_OverLimit = Speed > MaxSpeed;
+        DSP_Number = MaxSpeed;
+      }
+
+      window.addEventListener("DOMContentLoaded", (event) => {
+        setInterval(function () {
+          MainController();
+        }, 5000);
+      });
+    </script>
+
+    <script>
       var Latitude = null;
       var Longitude = null;
       var Speed = null;
@@ -69,7 +128,7 @@
           function (position) {
             if (Latitude != null && Latitude != null) {
               var Time = (Date.now() - GpsAge) / 1000;
-              var Distance = HaversineDistance(Latitude, Longitude, position.coords.latitude, position.coords.longitude, "k") * 1000;
+              var Distance = HaversineDistance(Latitude, Longitude, position.coords.latitude, position.coords.longitude, "K") * 1000;
               Speed = (Distance / Time) * 3.6;
             }
 
@@ -90,22 +149,26 @@
             Latitude = 50.33006554208371;
             Longitude = 19.192047731242557;
           }
-
-          var Cadd = 0.0001;
+          var Cadd = 0.00000001;
 
           var Distance = HaversineDistance(Latitude, Longitude, Latitude + Cadd, Longitude + Cadd, "k") * 1000;
           var Time = (Date.now() - GpsAge) / 1000;
           Speed = (Distance / Time) * 3.6;
+          Speed = 100;
 
           GpsAge = Date.now();
           Latitude += Cadd;
           Longitude += Cadd;
+
+          //   if (i > 10) {
+          //     Latitude = 53.813171;
+          //     Longitude = 9.663983;
+          //   }
         }, 1000);
       }
 
       setInterval(function () {
         document.getElementById("x").innerText = "Lat: " + Latitude + "\n Lon: " + Longitude + "\n Speed: " + Speed + "\n Age:" + (Date.now() - GpsAge) / 1000;
-        DSP_Number = Speed;
       }, 100);
 
       window.addEventListener("DOMContentLoaded", (event) => {
